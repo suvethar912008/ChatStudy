@@ -154,6 +154,7 @@ if __name__ == "__main__":
     client2.send("Hi Alice, how are you?")
     time.sleep(1)
     client1.send("I’m good, thanks!")
+```
 
 ## Output:
 
