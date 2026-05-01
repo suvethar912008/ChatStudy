@@ -72,6 +72,92 @@ User authentication mechanisms are essential to ensure secure and authorized acc
 Client-server chat applications are versatile tools that facilitate real-time communication between users over a network. They incorporate various components, including server-side and client-side elements, and must consider factors such as security, scalability, and concurrency. As technology continues to advance, client-server chat applications remain integral for collaborative communication in various domains.
 
 Client-server chat applications are foundational to real-time communication over networks. They incorporate principles of socket programming, communication protocols, and security mechanisms to provide a seamless user experience. Understanding the basics of client-server chat applications is essential for developers involved in networked application development, as they form the backbone of various collaborative communication systems. As technology evolves, chat applications continue to adapt, incorporating new features and technologies to enhance user interaction and connectivity.
+## Program:
+```
+import socket
+import threading
+import time
+
+class ChatServer:
+    def __init__(self, host='127.0.0.1', port=12345):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind((host, port))
+        self.server.listen()
+        self.clients = []
+        print(f"Server started on {host}:{port}")
+
+    def broadcast(self, message, sender=None):
+        for client in self.clients:
+            if client != sender:
+                client.send(message)
+
+    def handle_client(self, client):
+        while True:
+            try:
+                msg = client.recv(1024)
+                if msg:
+                    print(msg.decode())
+                    self.broadcast(msg, sender=client)
+            except:
+                self.clients.remove(client)
+                client.close()
+                break
+
+    def run(self):
+        threading.Thread(target=self.accept_clients).start()
+
+    def accept_clients(self):
+        while True:
+            client, addr = self.server.accept()
+            print(f"Connected with {addr}")
+            self.clients.append(client)
+            threading.Thread(target=self.handle_client, args=(client,)).start()
+
+
+class ChatClient:
+    def __init__(self, nickname, host='127.0.0.1', port=12345):
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.client.connect((host, port))
+        self.nickname = nickname
+        threading.Thread(target=self.receive).start()
+
+    def receive(self):
+        while True:
+            try:
+                msg = self.client.recv(1024).decode()
+                if msg:
+                    print(msg)
+            except:
+                print("Connection closed")
+                break
+
+    def send(self, message):
+        msg = f"{self.nickname}: {message}"
+        self.client.send(msg.encode())
+
+
+if __name__ == "__main__":
+    # Start server
+    server = ChatServer()
+    threading.Thread(target=server.run).start()
+
+    time.sleep(1)  # Give server time to start
+
+    # Create two clients
+    client1 = ChatClient("Alice")
+    client2 = ChatClient("Bob")
+
+    # Simulate chat
+    time.sleep(1)
+    client1.send("Hello Bob!")
+    time.sleep(1)
+    client2.send("Hi Alice, how are you?")
+    time.sleep(1)
+    client1.send("I’m good, thanks!")
+
+## Output:
+
+<img width="436" height="201" alt="Screenshot 2026-04-29 161758" src="https://github.com/user-attachments/assets/a9b343bd-f43b-4265-95ba-8ecf48e3f768" />
 
 
 ## Result:
